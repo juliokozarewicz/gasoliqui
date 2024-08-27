@@ -1,0 +1,3 @@
+• Database: SQLite
+• Documentação: Swagger '/api/docs'
+• Logs
