@@ -20,7 +20,10 @@
     "test:e2e": "jest --config ./test/jest-e2e.json"
   },
   "dependencies": {
+    "@google-cloud/vision": "^4.3.2",
+    "@google/generative-ai": "^0.17.1",
     "@nestjs/common": "^10.0.0",
+    "@nestjs/config": "^3.2.3",
     "@nestjs/core": "^10.0.0",
     "@nestjs/platform-express": "^10.0.0",
     "@nestjs/swagger": "^7.4.0",
