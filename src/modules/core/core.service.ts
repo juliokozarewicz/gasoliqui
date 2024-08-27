@@ -54,6 +54,21 @@ export class ReadDataService {
 
         try {
 
+            // measure type 
+            const allowed_measure = ['water', 'gas']
+
+            if (!allowed_measure.includes(readDataExtendedDTO.measure_type)) {
+                throw new BadRequestException({
+                    statusCode: 400,
+                    message: "measure type must be 'gas' or 'water'",
+                    _links: {
+                        self: { href: "/api/upload" },
+                        next: { href: `/api/confirm`},
+                        prev: { href: "/api/{customer-code}/list" }
+                    }
+                })
+            }
+
             // before init transaction
             const uuidSave = String(uuidv4())
             let measureValue: number;
@@ -61,21 +76,6 @@ export class ReadDataService {
 
             // transaction
             await this.readDataEntity.manager.transaction(async createMeasure => {
-
-                // measure type 
-                const allowed_measure = ['water', 'gas']
-
-                if (!allowed_measure.includes(readDataExtendedDTO.measure_type)) {
-                    throw new BadRequestException({
-                        statusCode: 400,
-                        message: "measure type must be 'gas' or 'water'",
-                        _links: {
-                            self: { href: "/api/upload" },
-                            next: { href: `/api/confirm`},
-                            prev: { href: "/api/{customer-code}/list" }
-                        }
-                    })
-                }
 
                 // static files dir
                 const tempDir = path.resolve('./src/static')
@@ -91,10 +91,12 @@ export class ReadDataService {
                 // upload image
                 const fileManager = new GoogleAIFileManager(process.env.GEMINI_API_KEY)            
 
-                const uploadResponse = await fileManager.uploadFile(`./src/static/${uuidSave}.png`, {
-                    mimeType: "image/png",
-                    displayName: `${uuidSave}`,
-                })
+                const uploadResponse = await fileManager.uploadFile(
+                    `./src/static/${uuidSave}.png`, {
+                        mimeType: "image/png",
+                        displayName: `${uuidSave}`,
+                    }
+                )
 
                 // process image
                 // --------------------------------------------------------------------------
@@ -120,6 +122,7 @@ export class ReadDataService {
 
                 // commit db
                 const new_measure = new ReadDataEntity()
+                new_measure.id = uuidSave
                 new_measure.customer_code = readDataExtendedDTO.customer_code
                 new_measure.measure_datetime = readDataExtendedDTO.measure_datetime
                 new_measure.measure_type = readDataExtendedDTO.measure_type
