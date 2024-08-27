@@ -16,7 +16,6 @@ import { GoogleGenerativeAI } from "@google/generative-ai";
 
 // Define the interface for the response
 export interface standardResponse {
-    data: any,
     statusCode: number,
     message: string,
     measure_value: IntegerType,
@@ -89,7 +88,6 @@ export class ReadDataService {
             // -------------------------------------------------------------------------
 
             return {
-                data: result,
                 statusCode: 200,
                 message: 'leitura realizada com sucesso',
                 measure_value: parseInt(result.response.candidates[0].content.parts[0].text),
