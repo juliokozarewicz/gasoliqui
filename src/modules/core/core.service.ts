@@ -54,57 +54,92 @@ export class ReadDataService {
 
         try {
 
-            // dir
-            const tempDir = path.resolve('./src/static')
-            if (!fs.existsSync(tempDir)) {
-                fs.mkdirSync(tempDir, { recursive: true })
-            }
-
-            // UUID
+            // before init transaction
             const uuidSave = String(uuidv4())
+            let measureValue: number;
+            let fileUrl: string;
 
-            // decode ans save img
-            const base64Data = readDataExtendedDTO.image_data.replace(/^data:image\/\w+base64,/, '')
-            const filePath = path.join(tempDir, `${uuidSave}.png`)
-            fs.writeFileSync(filePath, base64Data, 'base64')
+            // transaction
+            await this.readDataEntity.manager.transaction(async createMeasure => {
 
-            // upload image
-            const fileManager = new GoogleAIFileManager(process.env.GEMINI_API_KEY)            
+                // measure type 
+                const allowed_measure = ['water', 'gas']
 
-            const uploadResponse = await fileManager.uploadFile(`./src/static/${uuidSave}.png`, {
-                mimeType: "image/png",
-                displayName: `${uuidSave}`,
+                if (!allowed_measure.includes(readDataExtendedDTO.measure_type)) {
+                    throw new BadRequestException({
+                        statusCode: 400,
+                        message: "measure type must be 'gas' or 'water'",
+                        _links: {
+                            self: { href: "/api/upload" },
+                            next: { href: `/api/confirm`},
+                            prev: { href: "/api/{customer-code}/list" }
+                        }
+                    })
+                }
+
+                // static files dir
+                const tempDir = path.resolve('./src/static')
+                if (!fs.existsSync(tempDir)) {
+                    fs.mkdirSync(tempDir, { recursive: true })
+                }
+
+                // decode and save img
+                const base64Data = readDataExtendedDTO.image_data.replace(/^data:image\/\w+base64,/, '')
+                const filePath = path.join(tempDir, `${uuidSave}.png`)
+                fs.writeFileSync(filePath, base64Data, 'base64')
+
+                // upload image
+                const fileManager = new GoogleAIFileManager(process.env.GEMINI_API_KEY)            
+
+                const uploadResponse = await fileManager.uploadFile(`./src/static/${uuidSave}.png`, {
+                    mimeType: "image/png",
+                    displayName: `${uuidSave}`,
+                })
+
+                // process image
+                // --------------------------------------------------------------------------
+                const genAI = new GoogleGenerativeAI(process.env.GEMINI_API_KEY)
+
+                const model = genAI.getGenerativeModel({
+                    model: "gemini-1.5-pro",
+                })
+
+                const result = await model.generateContent([
+                    {
+                    fileData: {
+                        mimeType: uploadResponse.file.mimeType,
+                        fileUri: uploadResponse.file.uri
+                    }
+                    },
+                    {
+                        text: "Get the numerical (only numbers) value for measuring water, gas, electricity. " +
+                        "Make a formatted and simple answer, without text e.g. measurement: 123456 (only numbers)"
+                    },
+                ])
+                // -------------------------------------------------------------------------
+
+                // commit db
+                const new_measure = new ReadDataEntity()
+                new_measure.customer_code = readDataExtendedDTO.customer_code
+                new_measure.measure_datetime = readDataExtendedDTO.measure_datetime
+                new_measure.measure_type = readDataExtendedDTO.measure_type
+                new_measure.url_image = `/static/${uuidSave}.png`
+                new_measure.has_confirmed = false
+                await createMeasure.save(new_measure)
+
+                // Store result to be used after transaction
+                measureValue = parseInt(result.response.candidates[0].content.parts[0].text);
+                fileUrl = `/static/${uuidSave}.png`;
+
             })
-
-            // process image
-            // --------------------------------------------------------------------------
-            const genAI = new GoogleGenerativeAI(process.env.GEMINI_API_KEY)
-
-            const model = genAI.getGenerativeModel({
-                model: "gemini-1.5-pro",
-            })
-
-            const result = await model.generateContent([
-                {
-                  fileData: {
-                    mimeType: uploadResponse.file.mimeType,
-                    fileUri: uploadResponse.file.uri
-                  }
-                },
-                {
-                    text: "Get the numerical (only numbers) value for measuring water, gas, electricity. " +
-                    "Make a formatted and simple answer, without text e.g. measurement: 123456 (only numbers)"
-                },
-            ])
-            // -------------------------------------------------------------------------
 
             return {
                 statusCode: 200,
                 message: 'read successfully completed',
-                measure_value: parseInt(result.response.candidates[0].content.parts[0].text),
+                measure_value: measureValue,
                 measure_uuid: uuidSave,
                 _links: {
-                    image_url: { href: `/static/${uuidSave}.png` },
+                    image_url: { href:  fileUrl},
                     self: { href: "/api/upload" },
                     next: { href: `/api/confirm`},
                     prev: { href: "/api/{customer-code}/list" }

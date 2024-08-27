@@ -27,7 +27,7 @@ export class ReadDataDTO {
   measure_datetime: Date;
 
   @ApiProperty({ 
-    example: 'agua',
+    example: 'gas',
   })
   @IsString()
   @IsNotEmpty()

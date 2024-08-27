@@ -1,7 +1,6 @@
 import {
     Entity, PrimaryGeneratedColumn, Column,
-    CreateDateColumn, UpdateDateColumn,
-    Unique,
+    UpdateDateColumn,
 } from 'typeorm'
 
 @Entity()
@@ -11,9 +10,6 @@ export class ReadDataEntity {
     id: string
 
     @Column({ type: 'varchar', length: 255, nullable: false })
-    image_data: string
-
-    @Column({ type: 'varchar', length: 255, nullable: false })
     customer_code: string
 
     @UpdateDateColumn()
@@ -21,5 +17,11 @@ export class ReadDataEntity {
 
     @Column({ type: 'varchar', length: 255, nullable: false })
     measure_type: string
+
+    @Column({ type: 'varchar', length: 255, nullable: false })
+    url_image: string
+
+    @Column({ type: 'boolean', default: false, nullable: false })
+    has_confirmed: boolean
 
 }
