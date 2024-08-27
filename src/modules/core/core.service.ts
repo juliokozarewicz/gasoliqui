@@ -8,11 +8,11 @@ import { InjectRepository } from "@nestjs/typeorm"
 import { IntegerType, Repository } from "typeorm"
 import { ReadDataExtendedDTO } from "./core.dto"
 import { logsGenerator } from "app.logs"
-
-import { GoogleAIFileManager } from "@google/generative-ai/server";
-import { GoogleGenerativeAI } from "@google/generative-ai";
-
-
+import { GoogleAIFileManager } from "@google/generative-ai/server"
+import { GoogleGenerativeAI } from "@google/generative-ai"
+import { v4 as uuidv4 } from 'uuid'
+import * as fs from 'fs'
+import * as path from 'path'
 
 // Define the interface for the response
 export interface standardResponse {
@@ -47,31 +47,42 @@ export class ReadDataService {
     // ---------------------------------------------------------------------------------
 
 
-    // insert new user
+    // upload image
     async uploadImage(
         readDataExtendedDTO: ReadDataExtendedDTO
     ): Promise<standardResponse> {
 
         try {
 
+            // dir
+            const tempDir = path.resolve('./src/static')
+            if (!fs.existsSync(tempDir)) {
+                fs.mkdirSync(tempDir, { recursive: true })
+            }
+
+            // UUID
+            const uuidSave = String(uuidv4())
+
+            // decode ans save img
+            const base64Data = readDataExtendedDTO.image_data.replace(/^data:image\/\w+base64,/, '')
+            const filePath = path.join(tempDir, `${uuidSave}.png`)
+            fs.writeFileSync(filePath, base64Data, 'base64')
+
             // upload image
-            // --------------------------------------------------------------------------
-            const fileManager = new GoogleAIFileManager(process.env.GEMINI_API_KEY);            
+            const fileManager = new GoogleAIFileManager(process.env.GEMINI_API_KEY)            
 
-            const uploadResponse = await fileManager.uploadFile("./src/1_media/luz.jpg", {
-                mimeType: "image/jpeg",
-                displayName: "Jetpack drawing",
-            });
-            // --------------------------------------------------------------------------
+            const uploadResponse = await fileManager.uploadFile(`./src/static/${uuidSave}.png`, {
+                mimeType: "image/png",
+                displayName: `${uuidSave}`,
+            })
 
-            // process image #####
+            // process image
             // --------------------------------------------------------------------------
-
-            const genAI = new GoogleGenerativeAI(process.env.GEMINI_API_KEY);
+            const genAI = new GoogleGenerativeAI(process.env.GEMINI_API_KEY)
 
             const model = genAI.getGenerativeModel({
                 model: "gemini-1.5-pro",
-            });
+            })
 
             const result = await model.generateContent([
                 {
@@ -84,19 +95,19 @@ export class ReadDataService {
                     text: "Get the numerical (only numbers) value for measuring water, gas, electricity. " +
                     "Make a formatted and simple answer, without text e.g. measurement: 123456 (only numbers)"
                 },
-            ]);
+            ])
             // -------------------------------------------------------------------------
 
             return {
                 statusCode: 200,
-                message: 'leitura realizada com sucesso',
+                message: 'read successfully completed',
                 measure_value: parseInt(result.response.candidates[0].content.parts[0].text),
-                measure_uuid: 'UUID string',
+                measure_uuid: uuidSave,
                 _links: {
-                    image_url: { href: "/api/upload" },
+                    image_url: { href: `/static/${uuidSave}.png` },
                     self: { href: "/api/upload" },
                     next: { href: `/api/confirm`},
-                    prev: { href: "/api/{customer code}/list" }
+                    prev: { href: "/api/{customer-code}/list" }
                 }
             }
 
@@ -118,11 +129,11 @@ export class ReadDataService {
                 // return server error
                 throw new InternalServerErrorException({
                     statusCode: 500,
-                    message: 'ocorreu um erro inesperado, tente novamente mais tarde',
+                    message: 'an unexpected error occurred, please try again later.',
                     _links: {
-                        self: { href: "/api/accounts/signup" },
-                        next: { href: "/api/accounts/login" },
-                        prev: { href: "/api/accounts/login" }
+                        self: { href: "/api/upload" },
+                        next: { href: `/api/confirm`},
+                        prev: { href: "/api/{customer-code}/list" }
                     }
                 })
             }

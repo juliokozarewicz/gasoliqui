@@ -19,14 +19,14 @@ export class CoreController {
         private readonly readDataService: ReadDataService,
     ) {}
 
-    // create user
+    // upload image
     @Post('upload')
     @ApiBody({ type: ReadDataDTO })
     @ApiOperation({
-        summary: 'Medição de Imagem',
+        summary: 'Image Measurement',
         description: (
-            'Responsável por receber uma imagem em base 64, '+
-            'consultar o Gemini e retornar a medida lida pela API'
+            'Responsible for receiving an image in base64 format, ' +
+            'querying Gemini, and returning the measurement read by the API.'
         )
     })
     async uploadImage(

@@ -1,6 +1,6 @@
 import { ApiProperty } from '@nestjs/swagger';
 import {
-    IsString, IsNotEmpty, IsDate,
+    IsString, IsNotEmpty,
     IsOptional
 } from 'class-validator';
 

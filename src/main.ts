@@ -2,9 +2,13 @@ import { NestFactory } from '@nestjs/core';
 import { AppModule } from './app.module';
 import { DocumentBuilder, SwaggerModule } from '@nestjs/swagger';
 import { Logger } from '@nestjs/common';
+import * as express from 'express';
 
 async function bootstrap() {
   const app = await NestFactory.create(AppModule);
+
+  // larger size per request
+  app.use(express.json({ limit: '50mb' }));
 
   // Logs
   app.useLogger(new Logger());
@@ -13,11 +17,10 @@ async function bootstrap() {
   const config = new DocumentBuilder()
     .setTitle('GASOLIQUI')
     .setDescription(
-      'A Gasoliqui API é uma solução robusta e eficiente para ' +
-      'leitura e monitoramento de dados de consumo de água e gás. ' +
-      'Projetada para atender às necessidades de empresas e sistemas ' +
-      'de gestão de utilidades, a API oferece uma interface fácil ' +
-      'de usar para integrar dados de consumo em tempo real em suas aplicações.'
+      'The Gasoliqui API is a robust and efficient solution for reading and monitoring ' +
+      'water and gas consumption data. Designed to meet the needs of businesses and ' +
+      'utility management systems, the API offers an easy-to-use interface for ' +
+      'integrating real-time consumption data into your applications.'
     )
     .setVersion('1.0')
     .addBearerAuth()

@@ -1,3 +1,5 @@
 • Database: SQLite
 • Documentação: Swagger '/api/docs'
 • Logs
+• Servir arquivos estátivos
+
