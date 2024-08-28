@@ -13,7 +13,7 @@ export function sanitizeId(input: string): string {
 }
 
 export function sanitizeString(input: string): string {
-    const validStringRegex = /^[a-zA-Z0-9\s]+$/
+    const validStringRegex = /^[a-zA-Z0-9\s-]+$/
 
     if (!validStringRegex.test(input)) {
         throw new BadRequestException('input contains disallowed characters')
