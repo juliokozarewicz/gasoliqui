@@ -1,14 +1,17 @@
 import {
     Body, Controller, Get, Param, Patch, Post,  Query,  Req,
-    UsePipes,
     ValidationPipe,
 } from '@nestjs/common'
 import {
     ApiBody, ApiOperation, ApiParam, ApiQuery, ApiTags
 } from '@nestjs/swagger'
-import { ConfirmDataDTO, ConfirmDataExtendedDTO, GetDataDTO, ReadDataDTO, ReadDataExtendedDTO } from './core.dto'
+import {
+    ConfirmDataDTO, ConfirmDataExtendedDTO, GetDataDTO,
+    ReadDataDTO, ReadDataExtendedDTO
+} from './core.dto'
 import { sanitizeIP } from 'src/shared/input-validation/shared.sanitizer'
-import { allowedTypes, ReadDataService, standardResponse } from './core.service'
+import {
+    allowedTypes, ReadDataService, standardResponse} from './core.service'
 
 @Controller('api') 
 @ApiTags('CORE') // Docs
