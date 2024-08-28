@@ -23,7 +23,6 @@ async function bootstrap() {
       'integrating real-time consumption data into your applications.'
     )
     .setVersion('1.0')
-    .addBearerAuth()
     .build();
 
   const document = SwaggerModule.createDocument(app, config);
