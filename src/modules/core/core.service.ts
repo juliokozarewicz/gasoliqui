@@ -77,7 +77,6 @@ export class ReadDataService {
             // transaction
             await this.readDataEntity.manager.transaction(async createMeasure => {
 
-
                 // measurement check this month
                 const now = new Date();
                 const startOfMonth = new Date(now.getFullYear(), now.getMonth(), 1);
