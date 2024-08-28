@@ -89,13 +89,13 @@ export class CoreController {
     async readData(
         @Req() req: any,
         @Param('customerCode') customerCode: string,
-        @Query() getDataDTO: string,
+        @Query('measure_type') measure_type: string,
     ): Promise<any> {
 
-        const ip = sanitizeIP(`${req.ip}`)
+        const ip:string = sanitizeIP(`${req.ip}`)
         const getData = {
             customerCode,
-            getDataDTO,
+            measure_type,
             ip
         }
         return await this.readDataService.readData(getData)
