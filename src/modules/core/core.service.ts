@@ -5,7 +5,7 @@ import {
 } from "@nestjs/common"
 import { ReadDataEntity } from "./core.entity"
 import { InjectRepository } from "@nestjs/typeorm"
-import { Between, IntegerType, Repository } from "typeorm"
+import { Between, IntegerType, Like, Repository } from "typeorm"
 import { ConfirmDataExtendedDTO, GetDataDTO, ReadDataExtendedDTO } from "./core.dto"
 import { logsGenerator } from "app.logs"
 import { GoogleAIFileManager } from "@google/generative-ai/server"
@@ -65,7 +65,9 @@ export class ReadDataService {
             )) {
                 throw new BadRequestException({
                     statusCode: 400,
-                    message: "measure type must be 'gas' or 'water'",
+                    message:
+                        `'measure_type' must be one of the following options: ` +
+                        `${allowedTypes.join(', ')}`,
                     _links: {
                         self: { href: "/api/upload" },
                         next: { href: `/api/confirm`},
@@ -83,9 +85,9 @@ export class ReadDataService {
             await this.readDataEntity.manager.transaction(async createMeasure => {
 
                 // measurement check this month
-                const now = new Date();
-                const startOfMonth = new Date(now.getFullYear(), now.getMonth(), 1);
-                const endOfMonth = new Date(now.getFullYear(), now.getMonth() + 1, 0, 23, 59, 59);
+                const now = new Date()
+                const startOfMonth = new Date(now.getFullYear(), now.getMonth(), 1)
+                const endOfMonth = new Date(now.getFullYear(), now.getMonth() + 1, 0, 23, 59, 59)
 
                 // get data
                 const monthMeasureFind = await this.readDataEntity.findOne({
@@ -310,14 +312,42 @@ export class ReadDataService {
     }
 
     // read measure
-    async readData(getData: GetDataDTO): Promise<any> {
+    async readData(
+        getData: GetDataDTO
+    ): Promise<any> {
 
         try {
+
+            // veify measure type
+            const allowedUpper = allowedTypes.map(str => str.toUpperCase())
+
+            if (
+                getData.measure_type &&
+                !allowedUpper.includes(getData.measure_type)
+            ) {
+                throw new BadRequestException({
+                    statusCode: 400,
+                    message: 
+                        `'measure_type' must be one of the following options: ` +
+                        `${allowedTypes.join(', ').toUpperCase()}`,
+                    _links: {
+                        self: { href: "/api/{customer-code}/list" },
+                        next: { href: `/api/upload`},
+                        prev: { href: "/api/upload" }
+                    }
+                })
+            }
+
+            // find by measure type
+            const measureType = getData.measure_type;
+            const measureTypeCond = measureType ? measureType : '%';
+            const measureTypeValid = Like(`%${measureTypeCond}%`)
 
             // get data
             const afterConfirmFind = await this.readDataEntity.find({
                 where: {
-                    customer_code: sanitizeString(getData.customerCode)
+                    customer_code: sanitizeString(getData.customerCode),
+                    measure_type: measureTypeValid
                 },
             })
 
@@ -326,9 +356,9 @@ export class ReadDataService {
                     statusCode: 404,
                     message: 'no records were found for this customer',
                     _links: {
-                        self: { href: "/api/upload" },
-                        next: { href: `/api/confirm`},
-                        prev: { href: "/api/{customer-code}/list" }
+                        self: { href: "/api/{customer-code}/list" },
+                        next: { href: `/api/upload`},
+                        prev: { href: "/api/upload" }
                     }
                 })
             }
@@ -342,7 +372,7 @@ export class ReadDataService {
                     has_confirmed: item.has_confirmed,
                     url_image: item.url_image
                 }))
-            };
+            }
 
         } catch (error) {
 

@@ -1,17 +1,17 @@
-import { NestFactory } from '@nestjs/core';
-import { AppModule } from './app.module';
-import { DocumentBuilder, SwaggerModule } from '@nestjs/swagger';
-import { Logger, ValidationPipe } from '@nestjs/common';
-import * as express from 'express';
+import { NestFactory } from '@nestjs/core'
+import { AppModule } from './app.module'
+import { DocumentBuilder, SwaggerModule } from '@nestjs/swagger'
+import { Logger, ValidationPipe } from '@nestjs/common'
+import * as express from 'express'
 
 async function bootstrap() {
-  const app = await NestFactory.create(AppModule);
+  const app = await NestFactory.create(AppModule)
 
   // larger size per request
-  app.use(express.json({ limit: '50mb' }));
+  app.use(express.json({ limit: '50mb' }))
 
   // Logs
-  app.useLogger(new Logger());
+  app.useLogger(new Logger())
 
   // Swagger
   const config = new DocumentBuilder()
@@ -23,11 +23,11 @@ async function bootstrap() {
       'integrating real-time consumption data into your applications.'
     )
     .setVersion('1.0')
-    .build();
+    .build()
 
-  const document = SwaggerModule.createDocument(app, config);
-  SwaggerModule.setup('api/docs', app, document);
+  const document = SwaggerModule.createDocument(app, config)
+  SwaggerModule.setup('api/docs', app, document)
   
-  await app.listen(3000);
+  await app.listen(3000)
 }
-bootstrap();
+bootstrap()

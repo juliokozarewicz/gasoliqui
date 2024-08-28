@@ -83,8 +83,8 @@ export class CoreController {
     @ApiQuery({
         name: 'measure_type',
         required: false,
-        description: 'Field to filter by measurement type (e.g., gas).',
-        enum: allowedTypes
+        description: 'Field to filter by measurement type (e.g., GAS).',
+        enum: allowedTypes.map(str => str.toUpperCase())
     })
     async readData(
         @Req() req: any,

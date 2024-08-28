@@ -1,9 +1,9 @@
-import { ApiProperty } from '@nestjs/swagger';
+import { ApiProperty } from '@nestjs/swagger'
 import {
     IsString, IsNotEmpty, IsOptional,
     IsUUID, IsInt, IsIn
-} from 'class-validator';
-import { allowedTypes } from './core.service';
+} from 'class-validator'
+import { allowedTypes } from './core.service'
 
 export class ReadDataDTO {
 
@@ -12,27 +12,27 @@ export class ReadDataDTO {
   })
   @IsString()
   @IsNotEmpty()
-  image_data: string;
+  image_data: string
 
   @ApiProperty({ 
     example: '123456789',
   })
   @IsString()
   @IsNotEmpty()
-  customer_code: string;
+  customer_code: string
 
   @ApiProperty({ 
     example: '2024-08-27T10:57:55Z',
   })
   @IsOptional() 
-  measure_datetime: Date;
+  measure_datetime: Date
 
   @ApiProperty({ 
     example: 'gas',
   })
   @IsString()
   @IsNotEmpty()
-  measure_type: string;
+  measure_type: string
 }
 
 export class ReadDataExtendedDTO extends ReadDataDTO {
@@ -50,14 +50,14 @@ export class ConfirmDataDTO {
   })
   @IsNotEmpty()
   @IsUUID()
-  measure_uuid: string;
+  measure_uuid: string
 
   @ApiProperty({
     example: 123,
   })
   @IsInt()
   @IsNotEmpty()
-  confirmed_value: number;
+  confirmed_value: number
 
 }
 
@@ -77,13 +77,13 @@ export class GetDataDTO {
 
   @IsOptional()
   @IsString()
-  measure_type?: string;
+  measure_type?: string
 
   @ApiProperty({
     example: '123456789',
   })
   @IsNotEmpty()
   @IsString()
-  customerCode: string;
+  customerCode: string
 
 }
