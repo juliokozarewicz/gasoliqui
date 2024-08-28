@@ -6,14 +6,14 @@ import {
 import { ReadDataEntity } from "./core.entity"
 import { InjectRepository } from "@nestjs/typeorm"
 import { Between, IntegerType, Repository } from "typeorm"
-import { ReadDataExtendedDTO } from "./core.dto"
+import { ConfirmDataExtendedDTO, ReadDataExtendedDTO } from "./core.dto"
 import { logsGenerator } from "app.logs"
 import { GoogleAIFileManager } from "@google/generative-ai/server"
 import { GoogleGenerativeAI } from "@google/generative-ai"
 import { v4 as uuidv4 } from 'uuid'
 import * as fs from 'fs'
 import * as path from 'path'
-import { sanitizeString } from "src/shared/input-validation/shared.sanitizer"
+import { sanitizeInteger, sanitizeString, sanitizeId } from "src/shared/input-validation/shared.sanitizer"
 
 // Define the interface for the response
 export interface standardResponse {
@@ -104,7 +104,7 @@ export class ReadDataService {
                 }
 
                 // static files dir
-                const tempDir = path.resolve('./src/static')
+                const tempDir = path.resolve('./src/staticfiles')
                 if (!fs.existsSync(tempDir)) {
                     fs.mkdirSync(tempDir, { recursive: true })
                 }
@@ -118,7 +118,7 @@ export class ReadDataService {
                 const fileManager = new GoogleAIFileManager(process.env.GEMINI_API_KEY)            
 
                 const uploadResponse = await fileManager.uploadFile(
-                    `./src/static/${uuidSave}.png`, {
+                    `./src/staticfiles/${uuidSave}.png`, {
                         mimeType: "image/png",
                         displayName: `${uuidSave}`,
                     }
@@ -140,11 +140,18 @@ export class ReadDataService {
                     }
                     },
                     {
-                        text: "Get the numerical (only numbers) value for measuring water, gas, electricity. " +
-                        "Make a formatted and simple answer, without text e.g. measurement: 123456 (only numbers)"
+                        text: "Get the numerical (only numbers) value for measuring " +
+                        "water, gas, electricity. Make a formatted and simple " +
+                        "answer, without text e.g. measurement: 123456 (only numbers)"
                     },
                 ])
                 // -------------------------------------------------------------------------
+                
+                // Store result to be used after transaction
+                measureValue = parseInt(
+                    result.response.candidates[0].content.parts[0].text
+                )
+                fileUrl = `/staticfiles/${uuidSave}.png`
 
                 // commit db
                 const new_measure = new ReadDataEntity()
@@ -152,13 +159,10 @@ export class ReadDataService {
                 new_measure.customer_code = readDataExtendedDTO.customer_code
                 new_measure.measure_datetime = readDataExtendedDTO.measure_datetime
                 new_measure.measure_type = readDataExtendedDTO.measure_type
-                new_measure.url_image = `/static/${uuidSave}.png`
+                new_measure.measure_value = measureValue
+                new_measure.url_image = `/staticfiles/${uuidSave}.png`
                 new_measure.has_confirmed = false
                 await createMeasure.save(new_measure)
-
-                // Store result to be used after transaction
-                measureValue = parseInt(result.response.candidates[0].content.parts[0].text)
-                fileUrl = `/static/${uuidSave}.png`
             })
 
             return {
@@ -187,6 +191,99 @@ export class ReadDataService {
                     'error',
                     `read image error [uploadImage()]: ${error}`,
                     `${readDataExtendedDTO.ip}`
+                )
+
+                // return server error
+                throw new InternalServerErrorException({
+                    statusCode: 500,
+                    message: 'an unexpected error occurred, please try again later.',
+                    _links: {
+                        self: { href: "/api/upload" },
+                        next: { href: `/api/confirm`},
+                        prev: { href: "/api/{customer-code}/list" }
+                    }
+                })
+            }
+        }
+    }
+
+    // upload image
+    async confirmData(
+        confirmDataExtendedDTO: ConfirmDataExtendedDTO
+    ): Promise<standardResponse> {
+
+        try {
+
+            // transaction
+            await this.readDataEntity.manager.transaction(async confirmMeasure => {
+
+                // get data
+                const beforeConfirmFind = await this.readDataEntity.findOne({
+                    where: {
+                        id: sanitizeId(confirmDataExtendedDTO.measure_uuid)
+                    },
+                })
+
+                if (!beforeConfirmFind) {
+                    throw new NotFoundException({
+                        statusCode: 404,
+                        message: 'no records were found for this data',
+                        _links: {
+                            self: { href: "/api/upload" },
+                            next: { href: `/api/confirm`},
+                            prev: { href: "/api/{customer-code}/list" }
+                        }
+                    })
+                }
+
+                if (beforeConfirmFind.has_confirmed) {
+                    throw new ConflictException({
+                        statusCode: 409,
+                        message: 'the reading data has already been confirmed',
+                        _links: {
+                            self: { href: "/api/upload" },
+                            next: { href: `/api/confirm`},
+                            prev: { href: "/api/{customer-code}/list" }
+                        }
+                    })
+                }
+
+                // commit db
+                const update_measure = new ReadDataEntity()
+                update_measure.id = confirmDataExtendedDTO.measure_uuid
+                update_measure.measure_value = confirmDataExtendedDTO.confirmed_value
+                update_measure.has_confirmed = true
+                await confirmMeasure.save(update_measure)
+
+            })
+
+
+            return {
+                statusCode: 200,
+                message: 'data confirmed successfully',
+                measure_value: confirmDataExtendedDTO.confirmed_value,
+                measure_uuid: confirmDataExtendedDTO.measure_uuid,
+                _links: {
+                    image_url: { href:  `/staticfiles/${confirmDataExtendedDTO.measure_uuid}.png`},
+                    self: { href: "/api/upload" },
+                    next: { href: `/api/confirm`},
+                    prev: { href: "/api/{customer-code}/list" }
+                }
+            }
+
+        } catch (error) {
+
+            if (this.knownExceptions.some(exc => error instanceof exc)) {
+
+                throw error
+
+            } else {
+
+                // logs
+                logsGenerator(
+                    'error',
+                    `confirm value error [confirmData()]: ${error}`,
+                    `${confirmDataExtendedDTO.ip}`
                 )
 
                 // return server error

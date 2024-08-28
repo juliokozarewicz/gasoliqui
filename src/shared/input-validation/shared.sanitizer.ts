@@ -2,40 +2,7 @@ import { BadRequestException } from '@nestjs/common'
 import * as sanitizeHtml from 'sanitize-html'
 
 
-export function sanitizeNameString(input: string): string {
-
-    if (/[^a-zA-Z0-9\s]/.test(input)) {
-        throw new BadRequestException('has disallowed characters')
-    }
-
-    const sanitizedInput = sanitizeHtml(input, {
-        allowedTags: [],
-        allowedAttributes: {},
-    }).trim()
-
-    return sanitizedInput
-}
-
-export function sanitizeEmail(input: string): string {
-    if (!input || input.trim().length === 0) {
-        throw new BadRequestException('email cannot be empty')
-    }
-
-    const allowedCharsRegex = /^[\w.@+-]+$/
-
-    if (!allowedCharsRegex.test(input)) {
-        throw new BadRequestException('email contains disallowed characters')
-    }
-
-    const sanitizedInput = sanitizeHtml(input, {
-        allowedTags: [],
-        allowedAttributes: {},
-    })
-
-    return sanitizedInput
-}
-
-export function sanitizeUserId(input: string): string {
+export function sanitizeId(input: string): string {
     const uuidRegex = /^[0-9a-f]{8}-[0-9a-f]{4}-4[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i
 
     if (!uuidRegex.test(input)) {
@@ -65,8 +32,11 @@ export function sanitizeIP(input: string): string {
     return input
 }
 
+export function sanitizeInteger(input: number): number {
+    // Check if the input is a number and an integer
+    if (!Number.isInteger(input)) {
+        throw new BadRequestException('input must be a valid integer.');
+    }
 
-export function sanitizeText(input: string): string {
-    const sanitized = input.replace(/<\/?[^>]+(>|$)/g, "")
-    return sanitized
+    return input;
 }
