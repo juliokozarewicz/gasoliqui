@@ -1,13 +1,14 @@
 import {
-    Body, Controller, Patch, Post,  Req,
+    Body, Controller, Get, Param, Patch, Post,  Query,  Req,
+    UsePipes,
     ValidationPipe,
 } from '@nestjs/common'
 import {
-    ApiBody, ApiOperation, ApiTags
+    ApiBody, ApiOperation, ApiParam, ApiQuery, ApiTags
 } from '@nestjs/swagger'
-import { ConfirmDataDTO, ConfirmDataExtendedDTO, ReadDataDTO, ReadDataExtendedDTO } from './core.dto'
+import { ConfirmDataDTO, ConfirmDataExtendedDTO, GetDataDTO, GetDataExtendedDTO, ReadDataDTO, ReadDataExtendedDTO } from './core.dto'
 import { sanitizeIP } from 'src/shared/input-validation/shared.sanitizer'
-import { ReadDataService, standardResponse } from './core.service'
+import { allowedTypes, ReadDataService, standardResponse } from './core.service'
 
 @Controller('api') 
 @ApiTags('CORE') // Docs
@@ -37,6 +38,7 @@ export class CoreController {
             ip
         }
         return await this.readDataService.uploadImage(readDataExtendedDTO)
+
     }
 
     // confirm data
@@ -60,7 +62,35 @@ export class CoreController {
             ip
         }
         return await this.readDataService.confirmData(confirmDataExtendedDTO)
+
     }
 
-    
+    // read measure
+    @Get(':customerCode/list')
+    @ApiParam({
+        name: 'customerCode',
+        required: true,
+        description: 'Client code to get the information.'
+    })
+    @ApiQuery({
+        name: 'measure_type',
+        required: false,
+        description: 'Field to filter by measurement type (e.g., gas).',
+        enum: allowedTypes
+    })
+    async readData(
+        @Req() req: any,
+        @Param('customerCode') customerCode: string,
+        @Query() getDataDTO: string,
+    ): Promise<any> {
+
+        const ip = sanitizeIP(`${req.ip}`)
+        const getData = {
+            customerCode,
+            getDataDTO,
+            ip
+        }
+        return await this.readDataService.readData(getData)
+
+    }    
 }

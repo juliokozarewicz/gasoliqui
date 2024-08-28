@@ -6,14 +6,14 @@ import {
 import { ReadDataEntity } from "./core.entity"
 import { InjectRepository } from "@nestjs/typeorm"
 import { Between, IntegerType, Repository } from "typeorm"
-import { ConfirmDataExtendedDTO, ReadDataExtendedDTO } from "./core.dto"
+import { ConfirmDataExtendedDTO, GetDataExtendedDTO, ReadDataExtendedDTO } from "./core.dto"
 import { logsGenerator } from "app.logs"
 import { GoogleAIFileManager } from "@google/generative-ai/server"
 import { GoogleGenerativeAI } from "@google/generative-ai"
 import { v4 as uuidv4 } from 'uuid'
 import * as fs from 'fs'
 import * as path from 'path'
-import { sanitizeInteger, sanitizeString, sanitizeId } from "src/shared/input-validation/shared.sanitizer"
+import { sanitizeString, sanitizeId } from "src/shared/input-validation/shared.sanitizer"
 
 // Define the interface for the response
 export interface standardResponse {
@@ -28,6 +28,9 @@ export interface standardResponse {
         prev: { href: string }
     }
 }
+
+// allowed types
+export const allowedTypes = ['gas', 'water' ]
 
 @Injectable()
 export class ReadDataService {
@@ -55,9 +58,11 @@ export class ReadDataService {
         try {
 
             // measure type 
-            const allowed_measure = ['water', 'gas']
+            const allowed_measure = allowedTypes
 
-            if (!allowed_measure.includes(readDataExtendedDTO.measure_type)) {
+            if (!allowed_measure.includes(
+                readDataExtendedDTO.measure_type.toLocaleLowerCase()
+            )) {
                 throw new BadRequestException({
                     statusCode: 400,
                     message: "measure type must be 'gas' or 'water'",
@@ -85,9 +90,11 @@ export class ReadDataService {
                 // get data
                 const monthMeasureFind = await this.readDataEntity.findOne({
                     where: {
-                      customer_code: sanitizeString(readDataExtendedDTO.customer_code),
-                      measure_type: sanitizeString(readDataExtendedDTO.measure_type),
-                      measure_datetime: Between(startOfMonth, endOfMonth)
+                        customer_code: sanitizeString(readDataExtendedDTO.customer_code),
+                        measure_type: sanitizeString(
+                            readDataExtendedDTO.measure_type.toLocaleLowerCase()
+                        ),
+                        measure_datetime: Between(startOfMonth, endOfMonth)
                     },
                 })
 
@@ -158,7 +165,7 @@ export class ReadDataService {
                 new_measure.id = uuidSave
                 new_measure.customer_code = readDataExtendedDTO.customer_code
                 new_measure.measure_datetime = readDataExtendedDTO.measure_datetime
-                new_measure.measure_type = readDataExtendedDTO.measure_type
+                new_measure.measure_type = readDataExtendedDTO.measure_type.toLocaleLowerCase()
                 new_measure.measure_value = measureValue
                 new_measure.url_image = `/staticfiles/${uuidSave}.png`
                 new_measure.has_confirmed = false
@@ -284,6 +291,54 @@ export class ReadDataService {
                     'error',
                     `confirm value error [confirmData()]: ${error}`,
                     `${confirmDataExtendedDTO.ip}`
+                )
+
+                // return server error
+                throw new InternalServerErrorException({
+                    statusCode: 500,
+                    message: 'an unexpected error occurred, please try again later.',
+                    _links: {
+                        self: { href: "/api/upload" },
+                        next: { href: `/api/confirm`},
+                        prev: { href: "/api/{customer-code}/list" }
+                    }
+                })
+            }
+        }
+    }
+
+    // read measure
+    async readData(getData: any): Promise<any> {
+
+        try {
+            console.log(getData)
+
+            return {
+                statusCode: 200,
+                message: '*** test *** successfully *** test ***',
+                measure_value: 123456,
+                measure_uuid: '...',
+                _links: {
+                    image_url: { href:  `...`},
+                    self: { href: "/api/upload" },
+                    next: { href: `/api/confirm`},
+                    prev: { href: "/api/{customer-code}/list" }
+                }
+            }
+
+        } catch (error) {
+
+            if (this.knownExceptions.some(exc => error instanceof exc)) {
+
+                throw error
+
+            } else {
+
+                // logs
+                logsGenerator(
+                    'error',
+                    `read data error [readData()]: ${error}`,
+                    `${getData.ip}`
                 )
 
                 // return server error
