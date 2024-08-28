@@ -17,6 +17,7 @@ import { sanitizeString, sanitizeId } from "src/shared/input-validation/shared.s
 
 // Define the interface for the response
 export interface standardResponse {
+    success: boolean,
     statusCode: number,
     message: string,
     measure_value: IntegerType,
@@ -64,8 +65,8 @@ export class ReadDataService {
                 readDataExtendedDTO.measure_type.toLocaleLowerCase()
             )) {
                 throw new BadRequestException({
-                    statusCode: 400,
-                    message:
+                    error_code: 400,
+                    error_description:
                         `'measure_type' must be one of the following options: ` +
                         `${allowedTypes.join(', ')}`,
                     _links: {
@@ -102,8 +103,8 @@ export class ReadDataService {
 
                 if (monthMeasureFind) {
                     throw new ConflictException({
-                        statusCode: 409,
-                        message: 'a measurement for this type already exists this month',
+                        error_code: 409,
+                        error_description: 'a measurement for this type already exists this month',
                         _links: {
                             self: { href: "/api/upload" },
                             next: { href: `/api/confirm`},
@@ -175,6 +176,7 @@ export class ReadDataService {
             })
 
             return {
+                success: true,
                 statusCode: 200,
                 message: 'read successfully completed',
                 measure_value: measureValue,
@@ -204,8 +206,8 @@ export class ReadDataService {
 
                 // return server error
                 throw new InternalServerErrorException({
-                    statusCode: 500,
-                    message: 'an unexpected error occurred, please try again later.',
+                    error_code: 500,
+                    error_description: 'an unexpected error occurred, please try again later.',
                     _links: {
                         self: { href: "/api/upload" },
                         next: { href: `/api/confirm`},
@@ -235,8 +237,8 @@ export class ReadDataService {
 
                 if (!beforeConfirmFind) {
                     throw new NotFoundException({
-                        statusCode: 404,
-                        message: 'no records were found for this data',
+                        error_code: 404,
+                        error_description: 'no records were found for this data',
                         _links: {
                             self: { href: "/api/upload" },
                             next: { href: `/api/confirm`},
@@ -247,8 +249,8 @@ export class ReadDataService {
 
                 if (beforeConfirmFind.has_confirmed) {
                     throw new ConflictException({
-                        statusCode: 409,
-                        message: 'the reading data has already been confirmed',
+                        error_code: 409,
+                        error_description: 'the reading data has already been confirmed',
                         _links: {
                             self: { href: "/api/upload" },
                             next: { href: `/api/confirm`},
@@ -268,6 +270,7 @@ export class ReadDataService {
 
 
             return {
+                success: true,
                 statusCode: 200,
                 message: 'data confirmed successfully',
                 measure_value: confirmDataExtendedDTO.confirmed_value,
@@ -299,8 +302,8 @@ export class ReadDataService {
 
                 // return server error
                 throw new InternalServerErrorException({
-                    statusCode: 500,
-                    message: 'an unexpected error occurred, please try again later.',
+                    error_code: 500,
+                    error_description: 'an unexpected error occurred, please try again later.',
                     _links: {
                         self: { href: "/api/upload" },
                         next: { href: `/api/confirm`},
@@ -326,8 +329,8 @@ export class ReadDataService {
                 !allowedUpper.includes(getData.measure_type)
             ) {
                 throw new BadRequestException({
-                    statusCode: 400,
-                    message: 
+                    error_code: 400,
+                    error_description: 
                         `'measure_type' must be one of the following options: ` +
                         `${allowedTypes.join(', ').toUpperCase()}`,
                     _links: {
@@ -353,8 +356,8 @@ export class ReadDataService {
 
             if (afterConfirmFind.length === 0) {
                 throw new NotFoundException({
-                    statusCode: 404,
-                    message: 'no records were found for this customer',
+                    error_code: 404,
+                    error_description: 'no records were found for this customer',
                     _links: {
                         self: { href: "/api/{customer-code}/list" },
                         next: { href: `/api/upload`},
@@ -391,8 +394,8 @@ export class ReadDataService {
 
                 // return server error
                 throw new InternalServerErrorException({
-                    statusCode: 500,
-                    message: 'an unexpected error occurred, please try again later.',
+                    error_code: 500,
+                    error_description: 'an unexpected error occurred, please try again later.',
                     _links: {
                         self: { href: "/api/upload" },
                         next: { href: `/api/confirm`},
