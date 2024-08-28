@@ -1,19 +1,23 @@
 import {
     BadRequestException, ConflictException, Injectable,
-    InternalServerErrorException,
-    NotFoundException, UnauthorizedException
+    InternalServerErrorException, NotFoundException,
+    UnauthorizedException
 } from "@nestjs/common"
 import { ReadDataEntity } from "./core.entity"
 import { InjectRepository } from "@nestjs/typeorm"
 import { Between, IntegerType, Like, Repository } from "typeorm"
-import { ConfirmDataExtendedDTO, GetDataDTO, ReadDataExtendedDTO } from "./core.dto"
+import {
+    ConfirmDataExtendedDTO, GetDataDTO, ReadDataExtendedDTO
+} from "./core.dto"
 import { logsGenerator } from "app.logs"
 import { GoogleAIFileManager } from "@google/generative-ai/server"
 import { GoogleGenerativeAI } from "@google/generative-ai"
 import { v4 as uuidv4 } from 'uuid'
 import * as fs from 'fs'
 import * as path from 'path'
-import { sanitizeString, sanitizeId } from "src/shared/input-validation/shared.sanitizer"
+import {
+    sanitizeString, sanitizeId
+} from "src/shared/input-validation/shared.sanitizer"
 
 // Define the interface for the response
 export interface standardResponse {
