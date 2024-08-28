@@ -65,13 +65,13 @@ export class ReadDataService {
                 readDataExtendedDTO.measure_type.toLocaleLowerCase()
             )) {
                 throw new BadRequestException({
-                    error_code: 400,
+                    error_code: "INVALID_DATA",
                     error_description:
                         `'measure_type' must be one of the following options: ` +
                         `${allowedTypes.join(', ')}`,
                     _links: {
                         self: { href: "/api/upload" },
-                        next: { href: `/api/confirm`},
+                        next: { href: "/api/confirm"},
                         prev: { href: "/api/{customer-code}/list" }
                     }
                 })
@@ -103,11 +103,11 @@ export class ReadDataService {
 
                 if (monthMeasureFind) {
                     throw new ConflictException({
-                        error_code: 409,
-                        error_description: 'a measurement for this type already exists this month',
+                        error_code: "CONFLICT",
+                        error_description: "a measurement for this type already exists this month",
                         _links: {
                             self: { href: "/api/upload" },
-                            next: { href: `/api/confirm`},
+                            next: { href: "/api/confirm"},
                             prev: { href: "/api/{customer-code}/list" }
                         }
                     })
@@ -206,11 +206,11 @@ export class ReadDataService {
 
                 // return server error
                 throw new InternalServerErrorException({
-                    error_code: 500,
-                    error_description: 'an unexpected error occurred, please try again later.',
+                    error_code: "SERVER_ERROR",
+                    error_description: "an unexpected error occurred, please try again later.",
                     _links: {
                         self: { href: "/api/upload" },
-                        next: { href: `/api/confirm`},
+                        next: { href: "/api/confirm"},
                         prev: { href: "/api/{customer-code}/list" }
                     }
                 })
@@ -237,11 +237,11 @@ export class ReadDataService {
 
                 if (!beforeConfirmFind) {
                     throw new NotFoundException({
-                        error_code: 404,
-                        error_description: 'no records were found for this data',
+                        error_code: "NOT_FOUND",
+                        error_description: "no records were found for this data",
                         _links: {
                             self: { href: "/api/upload" },
-                            next: { href: `/api/confirm`},
+                            next: { href: "/api/confirm"},
                             prev: { href: "/api/{customer-code}/list" }
                         }
                     })
@@ -249,11 +249,11 @@ export class ReadDataService {
 
                 if (beforeConfirmFind.has_confirmed) {
                     throw new ConflictException({
-                        error_code: 409,
-                        error_description: 'the reading data has already been confirmed',
+                        error_code: "CONFLICT",
+                        error_description: "the reading data has already been confirmed",
                         _links: {
                             self: { href: "/api/upload" },
-                            next: { href: `/api/confirm`},
+                            next: { href: "/api/confirm"},
                             prev: { href: "/api/{customer-code}/list" }
                         }
                     })
@@ -302,11 +302,11 @@ export class ReadDataService {
 
                 // return server error
                 throw new InternalServerErrorException({
-                    error_code: 500,
-                    error_description: 'an unexpected error occurred, please try again later.',
+                    error_code: "SERVER_ERROR",
+                    error_description: "an unexpected error occurred, please try again later.",
                     _links: {
                         self: { href: "/api/upload" },
-                        next: { href: `/api/confirm`},
+                        next: { href: "/api/confirm"},
                         prev: { href: "/api/{customer-code}/list" }
                     }
                 })
@@ -329,13 +329,13 @@ export class ReadDataService {
                 !allowedUpper.includes(getData.measure_type)
             ) {
                 throw new BadRequestException({
-                    error_code: 400,
+                    error_code: "INVALID_DATA",
                     error_description: 
                         `'measure_type' must be one of the following options: ` +
                         `${allowedTypes.join(', ').toUpperCase()}`,
                     _links: {
                         self: { href: "/api/{customer-code}/list" },
-                        next: { href: `/api/upload`},
+                        next: { href: "/api/upload"},
                         prev: { href: "/api/upload" }
                     }
                 })
@@ -356,11 +356,11 @@ export class ReadDataService {
 
             if (afterConfirmFind.length === 0) {
                 throw new NotFoundException({
-                    error_code: 404,
-                    error_description: 'no records were found for this customer',
+                    error_code: 'NOT_FOUND',
+                    error_description: "no records were found for this customer",
                     _links: {
                         self: { href: "/api/{customer-code}/list" },
-                        next: { href: `/api/upload`},
+                        next: { href: "/api/upload"},
                         prev: { href: "/api/upload" }
                     }
                 })
@@ -394,11 +394,11 @@ export class ReadDataService {
 
                 // return server error
                 throw new InternalServerErrorException({
-                    error_code: 500,
-                    error_description: 'an unexpected error occurred, please try again later.',
+                    error_code: "SERVER_ERROR",
+                    error_description: "an unexpected error occurred, please try again later.",
                     _links: {
                         self: { href: "/api/upload" },
-                        next: { href: `/api/confirm`},
+                        next: { href: "/api/confirm"},
                         prev: { href: "/api/{customer-code}/list" }
                     }
                 })
