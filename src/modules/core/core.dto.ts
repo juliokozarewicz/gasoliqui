@@ -1,10 +1,9 @@
 import { ApiProperty } from '@nestjs/swagger';
 import {
-    IsString, IsNotEmpty,
-    IsOptional,
-    IsUUID,
-    IsInt
+    IsString, IsNotEmpty, IsOptional,
+    IsUUID, IsInt, IsIn
 } from 'class-validator';
+import { allowedTypes } from './core.service';
 
 export class ReadDataDTO {
 
@@ -67,5 +66,28 @@ export class ConfirmDataExtendedDTO extends ConfirmDataDTO {
   @IsString()
   @IsNotEmpty()
   readonly ip: string
+
+}
+
+export class GetDataDTO {
+
+  @IsOptional()
+  @IsString()
+  measure_type?: string;
+
+}
+
+export class GetDataExtendedDTO extends GetDataDTO {
+
+  @IsString()
+  @IsNotEmpty()
+  readonly ip: string
+
+  @ApiProperty({
+    example: '123456789',
+  })
+  @IsNotEmpty()
+  @IsString()
+  customerCode: string;
 
 }
