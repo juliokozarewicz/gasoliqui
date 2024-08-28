@@ -13,8 +13,8 @@ import { join } from 'path'
 
     // static files
     ServeStaticModule.forRoot({
-      rootPath: join('./src/static'), // Diretório onde as imagens são salvas
-      serveRoot: '/static', // URL base para acessar as imagens
+      rootPath: join('./src/staticfiles'),
+      serveRoot: '/staticfiles',
     }),
 
     // my modules
@@ -22,8 +22,8 @@ import { join } from 'path'
 
     // database
     TypeOrmModule.forRoot({
-      type: process.env.DB_TYPE,
-      database: process.env.DB_NAME,
+      type: 'sqlite',
+      database: 'database.sqlite',
       entities: [__dirname + '/**/*.entity{.ts,.js}'],
       synchronize: true,
     } as TypeOrmModuleOptions)

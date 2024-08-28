@@ -18,6 +18,9 @@ export class ReadDataEntity {
     @Column({ type: 'varchar', length: 255, nullable: false })
     measure_type: string
 
+    @Column({ type: 'int', nullable: false })
+    measure_value: number;
+
     @Column({ type: 'varchar', length: 255, nullable: false })
     url_image: string
 
