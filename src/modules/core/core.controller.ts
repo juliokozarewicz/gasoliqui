@@ -67,6 +67,14 @@ export class CoreController {
 
     // read measure
     @Get(':customerCode/list')
+    @ApiOperation({
+        summary: 'Get Customer Data',
+        description: (
+            'Retrieves detailed information about a specific customer. ' +
+            'By providing the unique customer identifier, you will ' +
+            'receive all data associated with that customer.'
+        )
+    })
     @ApiParam({
         name: 'customerCode',
         required: true,
