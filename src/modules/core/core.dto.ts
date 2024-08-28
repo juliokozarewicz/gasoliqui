@@ -71,17 +71,13 @@ export class ConfirmDataExtendedDTO extends ConfirmDataDTO {
 
 export class GetDataDTO {
 
-  @IsOptional()
-  @IsString()
-  measure_type?: string;
-
-}
-
-export class GetDataExtendedDTO extends GetDataDTO {
-
   @IsString()
   @IsNotEmpty()
   readonly ip: string
+
+  @IsOptional()
+  @IsString()
+  measure_type?: string;
 
   @ApiProperty({
     example: '123456789',
