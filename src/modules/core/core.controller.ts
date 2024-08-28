@@ -6,7 +6,7 @@ import {
 import {
     ApiBody, ApiOperation, ApiParam, ApiQuery, ApiTags
 } from '@nestjs/swagger'
-import { ConfirmDataDTO, ConfirmDataExtendedDTO, GetDataDTO, GetDataExtendedDTO, ReadDataDTO, ReadDataExtendedDTO } from './core.dto'
+import { ConfirmDataDTO, ConfirmDataExtendedDTO, GetDataDTO, ReadDataDTO, ReadDataExtendedDTO } from './core.dto'
 import { sanitizeIP } from 'src/shared/input-validation/shared.sanitizer'
 import { allowedTypes, ReadDataService, standardResponse } from './core.service'
 
@@ -93,7 +93,7 @@ export class CoreController {
     ): Promise<any> {
 
         const ip:string = sanitizeIP(`${req.ip}`)
-        const getData = {
+        const getData: GetDataDTO = {
             customerCode,
             measure_type,
             ip

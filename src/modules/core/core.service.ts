@@ -6,7 +6,7 @@ import {
 import { ReadDataEntity } from "./core.entity"
 import { InjectRepository } from "@nestjs/typeorm"
 import { Between, IntegerType, Repository } from "typeorm"
-import { ConfirmDataExtendedDTO, GetDataExtendedDTO, ReadDataExtendedDTO } from "./core.dto"
+import { ConfirmDataExtendedDTO, GetDataDTO, ReadDataExtendedDTO } from "./core.dto"
 import { logsGenerator } from "app.logs"
 import { GoogleAIFileManager } from "@google/generative-ai/server"
 import { GoogleGenerativeAI } from "@google/generative-ai"
@@ -132,7 +132,7 @@ export class ReadDataService {
                 )
 
                 // process image
-                // --------------------------------------------------------------------------
+                // --------------------------------------------------------------------
                 const genAI = new GoogleGenerativeAI(process.env.GEMINI_API_KEY)
 
                 const model = genAI.getGenerativeModel({
@@ -152,7 +152,7 @@ export class ReadDataService {
                         "answer, without text e.g. measurement: 123456 (only numbers)"
                     },
                 ])
-                // -------------------------------------------------------------------------
+                // -------------------------------------------------------------------
                 
                 // Store result to be used after transaction
                 measureValue = parseInt(
@@ -271,7 +271,9 @@ export class ReadDataService {
                 measure_value: confirmDataExtendedDTO.confirmed_value,
                 measure_uuid: confirmDataExtendedDTO.measure_uuid,
                 _links: {
-                    image_url: { href:  `/staticfiles/${confirmDataExtendedDTO.measure_uuid}.png`},
+                    image_url: {
+                        href: `/staticfiles/${confirmDataExtendedDTO.measure_uuid}.png`
+                    },
                     self: { href: "/api/upload" },
                     next: { href: `/api/confirm`},
                     prev: { href: "/api/{customer-code}/list" }
@@ -308,23 +310,39 @@ export class ReadDataService {
     }
 
     // read measure
-    async readData(getData: any): Promise<any> {
+    async readData(getData: GetDataDTO): Promise<any> {
 
         try {
-            console.log(getData)
+
+            // get data
+            const afterConfirmFind = await this.readDataEntity.find({
+                where: {
+                    customer_code: sanitizeString(getData.customerCode)
+                },
+            })
+
+            if (afterConfirmFind.length === 0) {
+                throw new NotFoundException({
+                    statusCode: 404,
+                    message: 'no records were found for this customer',
+                    _links: {
+                        self: { href: "/api/upload" },
+                        next: { href: `/api/confirm`},
+                        prev: { href: "/api/{customer-code}/list" }
+                    }
+                })
+            }
 
             return {
-                statusCode: 200,
-                message: '*** test *** successfully *** test ***',
-                measure_value: 123456,
-                measure_uuid: '...',
-                _links: {
-                    image_url: { href:  `...`},
-                    self: { href: "/api/upload" },
-                    next: { href: `/api/confirm`},
-                    prev: { href: "/api/{customer-code}/list" }
-                }
-            }
+                "customer_code": getData.customerCode,            
+                "measures": afterConfirmFind.map(item => ({
+                    measure_uuid: item.id,
+                    measure_datetime: item.measure_datetime,
+                    measure_type: item.measure_type,
+                    has_confirmed: item.has_confirmed,
+                    url_image: item.url_image
+                }))
+            };
 
         } catch (error) {
 
