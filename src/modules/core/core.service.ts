@@ -5,7 +5,7 @@ import {
 } from "@nestjs/common"
 import { ReadDataEntity } from "./core.entity"
 import { InjectRepository } from "@nestjs/typeorm"
-import { IntegerType, Repository } from "typeorm"
+import { Between, IntegerType, Repository } from "typeorm"
 import { ReadDataExtendedDTO } from "./core.dto"
 import { logsGenerator } from "app.logs"
 import { GoogleAIFileManager } from "@google/generative-ai/server"
@@ -13,6 +13,7 @@ import { GoogleGenerativeAI } from "@google/generative-ai"
 import { v4 as uuidv4 } from 'uuid'
 import * as fs from 'fs'
 import * as path from 'path'
+import { sanitizeString } from "src/shared/input-validation/shared.sanitizer"
 
 // Define the interface for the response
 export interface standardResponse {
@@ -31,7 +32,7 @@ export interface standardResponse {
 @Injectable()
 export class ReadDataService {
 
-    // ---------------------------------------------------------------------------------
+    // -----------------------------------------------------------------------
     constructor(
         @InjectRepository(ReadDataEntity)
         private readonly readDataEntity: Repository<ReadDataEntity>,
@@ -44,8 +45,7 @@ export class ReadDataService {
         UnauthorizedException,
         NotFoundException,
     ]
-    // ---------------------------------------------------------------------------------
-
+    // -----------------------------------------------------------------------
 
     // upload image
     async uploadImage(
@@ -71,11 +71,38 @@ export class ReadDataService {
 
             // before init transaction
             const uuidSave = String(uuidv4())
-            let measureValue: number;
-            let fileUrl: string;
+            let measureValue: number
+            let fileUrl: string
 
             // transaction
             await this.readDataEntity.manager.transaction(async createMeasure => {
+
+
+                // measurement check this month
+                const now = new Date();
+                const startOfMonth = new Date(now.getFullYear(), now.getMonth(), 1);
+                const endOfMonth = new Date(now.getFullYear(), now.getMonth() + 1, 0, 23, 59, 59);
+
+                // get data
+                const monthMeasureFind = await this.readDataEntity.findOne({
+                    where: {
+                      customer_code: sanitizeString(readDataExtendedDTO.customer_code),
+                      measure_type: sanitizeString(readDataExtendedDTO.measure_type),
+                      measure_datetime: Between(startOfMonth, endOfMonth)
+                    },
+                })
+
+                if (monthMeasureFind) {
+                    throw new ConflictException({
+                        statusCode: 409,
+                        message: 'a measurement for this type already exists this month',
+                        _links: {
+                            self: { href: "/api/upload" },
+                            next: { href: `/api/confirm`},
+                            prev: { href: "/api/{customer-code}/list" }
+                        }
+                    })
+                }
 
                 // static files dir
                 const tempDir = path.resolve('./src/static')
@@ -131,9 +158,8 @@ export class ReadDataService {
                 await createMeasure.save(new_measure)
 
                 // Store result to be used after transaction
-                measureValue = parseInt(result.response.candidates[0].content.parts[0].text);
-                fileUrl = `/static/${uuidSave}.png`;
-
+                measureValue = parseInt(result.response.candidates[0].content.parts[0].text)
+                fileUrl = `/static/${uuidSave}.png`
             })
 
             return {
