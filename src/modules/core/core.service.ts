@@ -60,6 +60,13 @@ export class ReadDataService {
         readDataExtendedDTO: ReadDataExtendedDTO
     ): Promise<standardResponse> {
 
+        // before init
+        const tempDir = path.resolve('./src/staticfiles')
+        let filePath: string
+        const uuidSave = String(uuidv4())
+        let measureValue: number
+        let fileUrl: string
+
         try {
 
             // measure type 
@@ -81,16 +88,14 @@ export class ReadDataService {
                 })
             }
 
-            // before init transaction
-            const uuidSave = String(uuidv4())
-            let measureValue: number
-            let fileUrl: string
+            // file path
+            filePath = path.join(tempDir, `${uuidSave}.png`)
 
             // transaction
             await this.readDataEntity.manager.transaction(async createMeasure => {
 
                 // measurement check this month
-                const now = new Date()
+                const now = new Date(readDataExtendedDTO.measure_datetime)
                 const startOfMonth = new Date(now.getFullYear(), now.getMonth(), 1)
                 const endOfMonth = new Date(now.getFullYear(), now.getMonth() + 1, 0, 23, 59, 59)
 
@@ -118,21 +123,19 @@ export class ReadDataService {
                 }
 
                 // static files dir
-                const tempDir = path.resolve('./src/staticfiles')
                 if (!fs.existsSync(tempDir)) {
                     fs.mkdirSync(tempDir, { recursive: true })
                 }
 
                 // decode and save img
                 const base64Data = readDataExtendedDTO.image_data.replace(/^data:image\/\w+base64,/, '')
-                const filePath = path.join(tempDir, `${uuidSave}.png`)
                 fs.writeFileSync(filePath, base64Data, 'base64')
 
                 // upload image
                 const fileManager = new GoogleAIFileManager(process.env.GEMINI_API_KEY)            
 
                 const uploadResponse = await fileManager.uploadFile(
-                    `./src/staticfiles/${uuidSave}.png`, {
+                    filePath, {
                         mimeType: "image/png",
                         displayName: `${uuidSave}`,
                     }
@@ -195,6 +198,13 @@ export class ReadDataService {
 
         } catch (error) {
 
+            // delete absolete img
+            if (fs.existsSync(filePath)) {
+                fs.unlinkSync(filePath);
+            }
+
+
+            // errors
             if (this.knownExceptions.some(exc => error instanceof exc)) {
 
                 throw error
