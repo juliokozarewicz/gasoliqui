@@ -23,7 +23,7 @@ import { join } from 'path'
     // database
     TypeOrmModule.forRoot({
       type: 'sqlite',
-      database: 'database.sqlite',
+      database: './app/database.sqlite',
       entities: [__dirname + '/**/*.entity{.ts,.js}'],
       synchronize: true,
     } as TypeOrmModuleOptions)
