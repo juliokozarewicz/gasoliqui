@@ -83,6 +83,12 @@ If you prefer not to use Docker, follow these steps:
 
 Access the API documentation at [http://localhost:3000/api/docs](http://localhost:3000/api/docs) after starting the application.
 
+<p align="left">
+    </br>
+    <img src="src/0_utils/docs.jpg">
+    </br>
+</p>
+
 ## Logs
 
 Logs are generated and stored according to the default configuration. Check the log files for monitoring and diagnostics.
