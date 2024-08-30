@@ -20,6 +20,9 @@ import {
 } from "src/shared/input-validation/shared.sanitizer"
 
 // Define the interface for the response
+// ---------------------------------------------
+
+// standard
 export interface standardResponse {
     success: boolean,
     statusCode: number,
@@ -33,6 +36,20 @@ export interface standardResponse {
         prev: { href: string }
     }
 }
+
+// Get data
+export interface getData {
+    customer_code: string;
+    measures: Array<{
+        measure_uuid: string;
+        measure_datetime: Date;
+        measure_type: string;
+        measure_value: number;
+        has_confirmed: boolean;
+        url_image: string;
+    }>;
+}
+// ---------------------------------------------
 
 // allowed types
 export const allowedTypes = ['gas', 'water' ]
@@ -184,7 +201,7 @@ export class ReadDataService {
 
             return {
                 success: true,
-                statusCode: 200,
+                statusCode: 201,
                 message: 'read successfully completed',
                 measure_value: measureValue,
                 measure_uuid: uuidSave,
@@ -331,7 +348,7 @@ export class ReadDataService {
     // read measure
     async readData(
         getData: GetDataDTO
-    ): Promise<any> {
+    ): Promise<getData> {
 
         try {
 

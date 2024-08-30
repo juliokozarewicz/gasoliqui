@@ -6,7 +6,7 @@ The Gasoliqui API is a robust and efficient solution for reading and monitoring 
 
 - **Node.js**: JavaScript runtime for server-side execution.
 - **NestJS**: Framework for building scalable and efficient server-side applications with Node.js.
-- **Database**: SQLite for lightweight and efficient data storage.
+- **Database**: SQLite for lightweight and efficient data storage. **(data is not persisted, change it according to your needs)**
 - **Documentation**: Available via Swagger at `/api/docs`.
 
 ## Features

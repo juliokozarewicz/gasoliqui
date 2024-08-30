@@ -3,7 +3,7 @@ import {
     ValidationPipe,
 } from '@nestjs/common'
 import {
-    ApiBody, ApiOperation, ApiParam, ApiQuery, ApiTags
+    ApiBody, ApiOperation, ApiParam, ApiQuery, ApiResponse, ApiTags
 } from '@nestjs/swagger'
 import {
     ConfirmDataDTO, ConfirmDataExtendedDTO, GetDataDTO,
@@ -11,7 +11,8 @@ import {
 } from './core.dto'
 import { sanitizeIP } from 'src/shared/input-validation/shared.sanitizer'
 import {
-    allowedTypes, ReadDataService, standardResponse} from './core.service'
+    allowedTypes, ReadDataService, standardResponse, getData
+} from './core.service'
 
 @Controller('api') 
 @ApiTags('CORE') // Docs
@@ -22,6 +23,26 @@ export class CoreController {
 
     // upload image
     @Post('upload')
+    @ApiResponse({
+        status: 200,
+        schema: {
+            properties: {
+                success: { type: 'boolean' },
+                statusCode: { type: 'number' },
+                message: { type: 'string' },
+                measure_value: { type: 'integer' },
+                measure_uuid: { type: 'string' },
+                _links: {
+                    properties: {
+                        image_url: { properties: { href: { type: 'string' } } },
+                        self: { properties: { href: { type: 'string' } } },
+                        next: { properties: { href: { type: 'string' } } },
+                        prev: { properties: { href: { type: 'string' } } },
+                    }
+                }
+            }
+        }
+    })
     @ApiBody({ type: ReadDataDTO })
     @ApiOperation({
         summary: 'Image Measurement',
@@ -46,12 +67,31 @@ export class CoreController {
 
     // confirm data
     @Patch('confirm')
+    @ApiResponse({
+        status: 200,
+        schema: {
+            properties: {
+                success: { type: 'boolean' },
+                statusCode: { type: 'number' },
+                message: { type: 'string' },
+                measure_value: { type: 'integer' },
+                measure_uuid: { type: 'string' },
+                _links: {
+                    properties: {
+                        image_url: { properties: { href: { type: 'string' } } },
+                        self: { properties: { href: { type: 'string' } } },
+                        next: { properties: { href: { type: 'string' } } },
+                        prev: { properties: { href: { type: 'string' } } },
+                    }
+                }
+            }
+        }
+    })
     @ApiBody({ type: ConfirmDataDTO })
     @ApiOperation({
-        summary: 'Image Measurement',
+        summary: 'Data Confirmation',
         description: (
-            'Responsible for receiving an image in base64 format, ' +
-            'querying Gemini, and returning the measurement read by the API.'
+            'Responsible for verifying the data read by the AI..'
         )
     })
     async confirmData(
@@ -70,6 +110,29 @@ export class CoreController {
 
     // read measure
     @Get(':customerCode/list')
+    @ApiResponse({
+        status: 200,
+        description: 'Successful response',
+        schema: {
+            type: 'object',
+            properties: {
+                success: { type: 'boolean' },
+                statusCode: { type: 'number' },
+                message: { type: 'string' },
+                measure_value: { type: 'integer' },
+                measure_uuid: { type: 'string' },
+                _links: {
+                    type: 'object',
+                    properties: {
+                        image_url: { type: 'object', properties: { href: { type: 'string' } } },
+                        self: { type: 'object', properties: { href: { type: 'string' } } },
+                        next: { type: 'object', properties: { href: { type: 'string' } } },
+                        prev: { type: 'object', properties: { href: { type: 'string' } } },
+                    }
+                }
+            }
+        }
+    })
     @ApiOperation({
         summary: 'Get Customer Data',
         description: (
@@ -93,7 +156,7 @@ export class CoreController {
         @Req() req: any,
         @Param('customerCode') customerCode: string,
         @Query('measure_type') measure_type: string,
-    ): Promise<any> {
+    ): Promise<getData> {
 
         const ip:string = sanitizeIP(`${req.ip}`)
         const getData: GetDataDTO = {
