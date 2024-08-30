@@ -220,7 +220,6 @@ export class ReadDataService {
                 fs.unlinkSync(filePath);
             }
 
-
             // errors
             if (this.knownExceptions.some(exc => error instanceof exc)) {
 
