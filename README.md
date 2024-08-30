@@ -88,11 +88,3 @@ The API supports static files, which can be configured as needed.
 ## Contributing
 
 If you wish to contribute to the project, please submit a pull request or open an issue on GitHub.
-
-## License
-
-This project is licensed under the [MIT License](LICENSE).
-
-## Contact
-
-For questions and support, please contact [your.email@example.com](mailto:your.email@example.com).
