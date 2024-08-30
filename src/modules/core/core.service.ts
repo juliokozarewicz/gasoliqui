@@ -386,6 +386,7 @@ export class ReadDataService {
                     measure_uuid: item.id,
                     measure_datetime: item.measure_datetime,
                     measure_type: item.measure_type,
+                    measure_value: item.measure_value,
                     has_confirmed: item.has_confirmed,
                     url_image: item.url_image
                 }))
