@@ -298,7 +298,6 @@ export class ReadDataService {
 
             })
 
-
             return {
                 success: true,
                 statusCode: 200,

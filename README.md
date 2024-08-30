@@ -1,3 +1,7 @@
+<p align="center">
+  <img src="src/0_utils/logo/logo.png" width="600">
+</p>
+
 # Gasoliqui API
 
 The Gasoliqui API is a robust and efficient solution for reading and monitoring water and gas consumption data. It leverages Google's advanced AI, Gemini, to provide detailed and precise insights.
