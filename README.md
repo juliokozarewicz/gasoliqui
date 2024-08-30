@@ -1,5 +1,8 @@
 <p align="center">
-  <img src="src/0_utils/logo/logo.png" width="600">
+    </br>
+    <img src="src/0_utils/logo/logo.png" width="300">
+    </br>
+    </br>
 </p>
 
 # Gasoliqui API
