@@ -9,7 +9,7 @@ import { Between, IntegerType, Like, Repository } from "typeorm"
 import {
     ConfirmDataExtendedDTO, GetDataDTO, ReadDataExtendedDTO
 } from "./core.dto"
-import { logsGenerator } from "app.logs"
+import { logsGenerator } from "../../../app.logs"
 import { GoogleAIFileManager } from "@google/generative-ai/server"
 import { GoogleGenerativeAI } from "@google/generative-ai"
 import { v4 as uuidv4 } from 'uuid'
@@ -17,7 +17,7 @@ import * as fs from 'fs'
 import * as path from 'path'
 import {
     sanitizeString, sanitizeId
-} from "src/shared/input-validation/shared.sanitizer"
+} from "../../shared/input-validation/shared.sanitizer"
 
 // Define the interface for the response
 // ---------------------------------------------
@@ -158,45 +158,71 @@ export class ReadDataService {
                     }
                 )
 
-                // process image
-                // --------------------------------------------------------------------
-                const genAI = new GoogleGenerativeAI(process.env.GEMINI_API_KEY)
+                try {
+                    // process image
+                    // --------------------------------------------------------------------
+                    const genAI = new GoogleGenerativeAI(process.env.GEMINI_API_KEY)
 
-                const model = genAI.getGenerativeModel({
-                    model: "gemini-1.5-pro",
-                })
+                    const model = genAI.getGenerativeModel({
+                        model: "gemini-1.5-pro",
+                    })
 
-                const result = await model.generateContent([
-                    {
-                    fileData: {
-                        mimeType: uploadResponse.file.mimeType,
-                        fileUri: uploadResponse.file.uri
+                    const result = await model.generateContent([
+                        {
+                        fileData: {
+                            mimeType: uploadResponse.file.mimeType,
+                            fileUri: uploadResponse.file.uri
+                        }
+                        },
+                        {
+                            text: "Get the numerical (only numbers) value for measuring " +
+                            "water, gas, electricity. Make a formatted and simple " +
+                            "answer, without text e.g. measurement: 123456 (only numbers)"
+                        },
+                    ])
+                    // -------------------------------------------------------------------
+                    
+                    // Store result to be used after transaction
+                    measureValue = parseInt(
+                        result.response.candidates[0].content.parts[0].text
+                    )
+                    fileUrl = `/staticfiles/${uuidSave}.png`
+                    
+                    // commit db
+                    const new_measure = new ReadDataEntity()
+                    new_measure.id = uuidSave
+                    new_measure.customer_code = readDataExtendedDTO.customer_code
+                    new_measure.measure_datetime = readDataExtendedDTO.measure_datetime
+                    new_measure.measure_type = readDataExtendedDTO.measure_type.toLocaleLowerCase()
+                    new_measure.measure_value = measureValue
+                    new_measure.url_image = `/staticfiles/${uuidSave}.png`
+                    new_measure.has_confirmed = false
+                    await createMeasure.save(new_measure)
+
+                } catch (error) {
+
+                    // delete absolete img
+                    if (fs.existsSync(filePath)) {
+                        fs.unlinkSync(filePath);
                     }
-                    },
-                    {
-                        text: "Get the numerical (only numbers) value for measuring " +
-                        "water, gas, electricity. Make a formatted and simple " +
-                        "answer, without text e.g. measurement: 123456 (only numbers)"
-                    },
-                ])
-                // -------------------------------------------------------------------
-                
-                // Store result to be used after transaction
-                measureValue = parseInt(
-                    result.response.candidates[0].content.parts[0].text
-                )
-                fileUrl = `/staticfiles/${uuidSave}.png`
 
-                // commit db
-                const new_measure = new ReadDataEntity()
-                new_measure.id = uuidSave
-                new_measure.customer_code = readDataExtendedDTO.customer_code
-                new_measure.measure_datetime = readDataExtendedDTO.measure_datetime
-                new_measure.measure_type = readDataExtendedDTO.measure_type.toLocaleLowerCase()
-                new_measure.measure_value = measureValue
-                new_measure.url_image = `/staticfiles/${uuidSave}.png`
-                new_measure.has_confirmed = false
-                await createMeasure.save(new_measure)
+                    // logs
+                    logsGenerator(
+                        'error',
+                        `read image error [uploadImage()]: ${error}`,
+                        `${readDataExtendedDTO.ip}`
+                    )
+
+                    throw new BadRequestException({
+                        error_code: "ERROR",
+                        error_description: "Problem with the Gemini response, please try again later.",
+                        _links: {
+                            self: { href: "/api/upload" },
+                            next: { href: "/api/confirm"},
+                            prev: { href: "/api/{customer-code}/list" }
+                        }
+                    })
+                }
             })
 
             return {

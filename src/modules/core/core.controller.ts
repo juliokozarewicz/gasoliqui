@@ -9,7 +9,7 @@ import {
     ConfirmDataDTO, ConfirmDataExtendedDTO, GetDataDTO,
     ReadDataDTO, ReadDataExtendedDTO
 } from './core.dto'
-import { sanitizeIP } from 'src/shared/input-validation/shared.sanitizer'
+import { sanitizeIP } from '../../shared/input-validation/shared.sanitizer'
 import {
     allowedTypes, ReadDataService, standardResponse, getData
 } from './core.service'
@@ -166,5 +166,5 @@ export class CoreController {
         }
         return await this.readDataService.readData(getData)
 
-    }    
+    }
 }

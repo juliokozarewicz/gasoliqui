@@ -1,5 +1,4 @@
 import { BadRequestException } from '@nestjs/common'
-import * as sanitizeHtml from 'sanitize-html'
 
 
 export function sanitizeId(input: string): string {
