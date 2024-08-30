@@ -213,8 +213,8 @@ export class ReadDataService {
                         `${readDataExtendedDTO.ip}`
                     )
 
-                    throw new BadRequestException({
-                        error_code: "ERROR",
+                    throw new ConflictException({
+                        error_code: "SERVICE_UNAVAILABLE",
                         error_description: "Problem with the Gemini response, please try again later.",
                         _links: {
                             self: { href: "/api/upload" },
