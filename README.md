@@ -1,73 +1,98 @@
-<p align="center">
-  <a href="http://nestjs.com/" target="blank"><img src="https://nestjs.com/img/logo-small.svg" width="200" alt="Nest Logo" /></a>
-</p>
+# Gasoliqui API
 
-[circleci-image]: https://img.shields.io/circleci/build/github/nestjs/nest/master?token=abc123def456
-[circleci-url]: https://circleci.com/gh/nestjs/nest
+The Gasoliqui API is a robust and efficient solution for reading and monitoring water and gas consumption data. It leverages Google's advanced AI, Gemini, to provide detailed and precise insights.
 
-  <p align="center">A progressive <a href="http://nodejs.org" target="_blank">Node.js</a> framework for building efficient and scalable server-side applications.</p>
-    <p align="center">
-<a href="https://www.npmjs.com/~nestjscore" target="_blank"><img src="https://img.shields.io/npm/v/@nestjs/core.svg" alt="NPM Version" /></a>
-<a href="https://www.npmjs.com/~nestjscore" target="_blank"><img src="https://img.shields.io/npm/l/@nestjs/core.svg" alt="Package License" /></a>
-<a href="https://www.npmjs.com/~nestjscore" target="_blank"><img src="https://img.shields.io/npm/dm/@nestjs/common.svg" alt="NPM Downloads" /></a>
-<a href="https://circleci.com/gh/nestjs/nest" target="_blank"><img src="https://img.shields.io/circleci/build/github/nestjs/nest/master" alt="CircleCI" /></a>
-<a href="https://coveralls.io/github/nestjs/nest?branch=master" target="_blank"><img src="https://coveralls.io/repos/github/nestjs/nest/badge.svg?branch=master#9" alt="Coverage" /></a>
-<a href="https://discord.gg/G7Qnnhy" target="_blank"><img src="https://img.shields.io/badge/discord-online-brightgreen.svg" alt="Discord"/></a>
-<a href="https://opencollective.com/nest#backer" target="_blank"><img src="https://opencollective.com/nest/backers/badge.svg" alt="Backers on Open Collective" /></a>
-<a href="https://opencollective.com/nest#sponsor" target="_blank"><img src="https://opencollective.com/nest/sponsors/badge.svg" alt="Sponsors on Open Collective" /></a>
-  <a href="https://paypal.me/kamilmysliwiec" target="_blank"><img src="https://img.shields.io/badge/Donate-PayPal-ff3f59.svg"/></a>
-    <a href="https://opencollective.com/nest#sponsor"  target="_blank"><img src="https://img.shields.io/badge/Support%20us-Open%20Collective-41B883.svg" alt="Support us"></a>
-  <a href="https://twitter.com/nestframework" target="_blank"><img src="https://img.shields.io/twitter/follow/nestframework.svg?style=social&label=Follow"></a>
-</p>
-  <!--[![Backers on Open Collective](https://opencollective.com/nest/backers/badge.svg)](https://opencollective.com/nest#backer)
-  [![Sponsors on Open Collective](https://opencollective.com/nest/sponsors/badge.svg)](https://opencollective.com/nest#sponsor)-->
+## Technologies
 
-## Description
+- **Node.js**: JavaScript runtime for server-side execution.
+- **NestJS**: Framework for building scalable and efficient server-side applications with Node.js.
+- **Database**: SQLite for lightweight and efficient data storage.
+- **Documentation**: Available via Swagger at `/api/docs`.
 
-[Nest](https://github.com/nestjs/nest) framework TypeScript starter repository.
+## Features
+
+- **Reading and Monitoring**: Captures and analyzes water and gas consumption data.
+- **Advanced Insights**: Utilizes Google's Gemini AI for detailed analytics.
+- **Logs**: Integrated logging system for effective monitoring and diagnostics.
+- **Static Files**: Support for static files for simplified configuration and operation.
 
 ## Installation
 
-```bash
-$ npm install
-```
+### Using Docker
 
-## Running the app
+1. **Ensure Docker and Docker Compose are installed**. You can follow the installation instructions on the [official Docker website](https://docs.docker.com/get-docker/).
 
-```bash
-# development
-$ npm run start
+2. **Clone the repository**:
+    ```bash
+    git clone https://github.com/yourusername/gasoliqui-api.git
+    cd gasoliqui-api
+    ```
 
-# watch mode
-$ npm run start:dev
+3. **Create a `.env` file**:
+    Create a file named `.env` in the root directory of the project and add the following environment variable:
+    ```env
+    GEMINI_API_KEY=your_google_gemini_api_key
+    ```
 
-# production mode
-$ npm run start:prod
-```
+4. **Build and start the containers**:
+    ```bash
+    docker-compose up --build
+    ```
 
-## Test
+    This command will build the Docker image for the application and start the necessary containers.
 
-```bash
-# unit tests
-$ npm run test
+5. **Access the application**:
+    The API will be available at [http://localhost:3000](http://localhost:3000).
 
-# e2e tests
-$ npm run test:e2e
+6. **Documentation**:
+    Access the API documentation at [http://localhost:3000/api/docs](http://localhost:3000/api/docs).
 
-# test coverage
-$ npm run test:cov
-```
+### Without Docker
 
-## Support
+If you prefer not to use Docker, follow these steps:
 
-Nest is an MIT-licensed open source project. It can grow thanks to the sponsors and support by the amazing backers. If you'd like to join them, please [read more here](https://docs.nestjs.com/support).
+1. **Clone the repository**:
+    ```bash
+    git clone https://github.com/yourusername/gasoliqui-api.git
+    cd gasoliqui-api
+    ```
 
-## Stay in touch
+2. **Create a `.env` file**:
+    Create a file named `.env` in the root directory of the project and add the following environment variable:
+    ```env
+    GEMINI_API_KEY=your_google_gemini_api_key
+    ```
 
-- Author - [Kamil Myśliwiec](https://kamilmysliwiec.com)
-- Website - [https://nestjs.com](https://nestjs.com/)
-- Twitter - [@nestframework](https://twitter.com/nestframework)
+3. **Install the dependencies**:
+    ```bash
+    npm install
+    ```
+
+4. **Start the application**:
+    ```bash
+    npm run start
+    ```
+
+## Documentation
+
+Access the API documentation at [http://localhost:3000/api/docs](http://localhost:3000/api/docs) after starting the application.
+
+## Logs
+
+Logs are generated and stored according to the default configuration. Check the log files for monitoring and diagnostics.
+
+## Static Files
+
+The API supports static files, which can be configured as needed.
+
+## Contributing
+
+If you wish to contribute to the project, please submit a pull request or open an issue on GitHub.
 
 ## License
 
-Nest is [MIT licensed](LICENSE).
+This project is licensed under the [MIT License](LICENSE).
+
+## Contact
+
+For questions and support, please contact [your.email@example.com](mailto:your.email@example.com).
