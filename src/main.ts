@@ -7,6 +7,13 @@ import * as express from 'express'
 async function bootstrap() {
   const app = await NestFactory.create(AppModule)
 
+  // CORS
+  app.enableCors({
+    origin: '*',
+    methods: 'GET,HEAD,PUT,PATCH,POST,DELETE',
+    allowedHeaders: 'Content-Type, Authorization',
+  });
+
   // larger size per request
   app.use(express.json({ limit: '50mb' }))
 
@@ -28,6 +35,6 @@ async function bootstrap() {
   const document = SwaggerModule.createDocument(app, config)
   SwaggerModule.setup('api/docs', app, document)
   
-  await app.listen(3000)
+  await app.listen(3005)
 }
 bootstrap()
